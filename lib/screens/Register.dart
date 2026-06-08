@@ -1,8 +1,10 @@
+import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:project_tpm/models/user.dart';
 import 'package:project_tpm/screens/Login.dart';
 import 'package:project_tpm/services/user_service.dart';
 import 'package:project_tpm/shared/color_palette.dart';
+import 'package:project_tpm/utils/rsa_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   RegisterPage({super.key});
@@ -246,7 +248,9 @@ class _RegisterPageState extends State<RegisterPage> {
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           decoration: BoxDecoration(
             color: whiteColor,
-            border: Border.all(color: isRegisterSuccess ? secondaryColor : dangerColor, width: 2),
+            border: Border.all(
+                color: isRegisterSuccess ? secondaryColor : dangerColor,
+                width: 2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -280,27 +284,42 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         onPressed: () async {
           String text = "";
+
+          // Cek dan generate kunci RSA jika belum ada
+          RSAPublicKey? publicKey = await RSAHelper.getPublicKey();
+          if (publicKey == null) {
+            await RSAHelper.generateAndStoreKeys(); // generate baru
+            publicKey = await RSAHelper.getPublicKey(); // ambil lagi
+          }
+
+          if (publicKey == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed to generate public key."),
+              ),
+            );
+            return;
+          }
+
+          final encryptedPassword =
+              await RSAHelper.encrypt(password, publicKey);
+
           final newUser = User(
             username: username,
-            password: password,
+            password: encryptedPassword,
             gender: gender,
             dateOfBirth: dateOfBirth,
           );
+
           final success = await userService.addUser(newUser);
 
-          if (success) {
-            setState(() {
-              text = "Register success!";
-              isRegisterSuccess = true;
-            });
-          } else {
-            setState(() {
-              text = "Register failed!";
-              isRegisterSuccess = false;
-            });
-          }
+          setState(() {
+            isRegisterSuccess = success;
+            text = success ? "Register success!" : "Register failed!";
+          });
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(text)));
 
           if (isRegisterSuccess) {
             Navigator.pushReplacement(
@@ -325,17 +344,20 @@ class WindFlowPainter extends CustomPainter {
 
     Path path1 = Path();
     path1.moveTo(0, size.height * 0.2);
-    path1.cubicTo(size.width * 0.2, size.height * 0.1, size.width * 0.8, size.height * 0.3, size.width, size.height * 0.2);
+    path1.cubicTo(size.width * 0.2, size.height * 0.1, size.width * 0.8,
+        size.height * 0.3, size.width, size.height * 0.2);
     canvas.drawPath(path1, paint);
 
     Path path2 = Path();
     path2.moveTo(0, size.height * 0.5);
-    path2.cubicTo(size.width * 0.3, size.height * 0.4, size.width * 0.7, size.height * 0.6, size.width, size.height * 0.5);
+    path2.cubicTo(size.width * 0.3, size.height * 0.4, size.width * 0.7,
+        size.height * 0.6, size.width, size.height * 0.5);
     canvas.drawPath(path2, paint..color = secondaryColor.withOpacity(0.18));
 
     Path path3 = Path();
     path3.moveTo(0, size.height * 0.8);
-    path3.cubicTo(size.width * 0.1, size.height * 0.7, size.width * 0.9, size.height * 0.9, size.width, size.height * 0.8);
+    path3.cubicTo(size.width * 0.1, size.height * 0.7, size.width * 0.9,
+        size.height * 0.9, size.width, size.height * 0.8);
     canvas.drawPath(path3, paint..color = accentColor.withOpacity(0.15));
   }
 

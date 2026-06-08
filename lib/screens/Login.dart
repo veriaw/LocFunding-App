@@ -1,9 +1,11 @@
+import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:project_tpm/screens/MainMenu.dart';
 import 'package:project_tpm/screens/register.dart';
 import 'package:project_tpm/services/user_service.dart';
 import 'package:project_tpm/shared/color_palette.dart';
 import 'package:project_tpm/models/user.dart';
+import 'package:project_tpm/utils/rsa_helper.dart';
 import 'package:project_tpm/utils/session_manager.dart';
 
 class LoginPage extends StatefulWidget {
@@ -29,15 +31,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _checkLoginStatus() async {
-  final profile = await profileManager.getUserProfile();
-  if (profile != null && profile['isLoggedIn'] == true) {
-    // Jika sudah login, langsung pindah ke MainMenu
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => MainMenu()),
-    );
+    final profile = await profileManager.getUserProfile();
+    if (profile != null && profile['isLoggedIn'] == true) {
+      // Jika sudah login, langsung pindah ke MainMenu
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainMenu()),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -223,8 +225,27 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: () async {
           String text = "";
 
-          final data = await userService.login(username, password);
           final user = await userService.getUserByUsername(username);
+
+          if (user == null || user.publicKey == null) {
+            setState(() {
+              isLoginSuccess = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(
+                      "User tidak ditemukan atau public key tidak tersedia")),
+            );
+            return;
+          }
+
+          // Ambil public key dari user dan enkripsi password input
+          final publicKey = CryptoUtils.rsaPublicKeyFromPem(user.publicKey!);
+          final encryptedPassword =
+              await RSAHelper.encrypt(password, publicKey);
+
+          // Login pakai password yang sudah dienkripsi
+          final data = await userService.login(username, encryptedPassword);
 
           if (data) {
             setState(() {

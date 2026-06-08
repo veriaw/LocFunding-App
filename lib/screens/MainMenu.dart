@@ -66,8 +66,6 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
     _loadProfileImage();
   }
 
-  
-
   void getProfile() async {
     final userProfile = await profileManager.getUserProfile();
 
@@ -87,6 +85,12 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
       // User belum login, arahkan ke halaman login
       print('User belum login, harus login dulu.');
     }
+  }
+
+  Future<void> _loadProfileImage() async {
+    final image =
+        await ProfileImageHelper.loadProfileImage(userProfileSession!.id!);
+    setState(() => _profileImage = image);
   }
   
   FundingProject? _getRandomProject() {
@@ -205,12 +209,6 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
   void dispose() {
     _shakeDetector.stopListening();
     super.dispose();
-  }
-
-  Future<void> _loadProfileImage() async {
-    final image =
-        await ProfileImageHelper.loadProfileImage(userProfileSession!.id!);
-    setState(() => _profileImage = image);
   }
 
   void searchProject(String enteredKeyword) {
@@ -1286,6 +1284,20 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
   }
 
   @override
+  void showParticipatedProjects(List<FundingProject> projects) {
+    setState(() {
+      participatedProjects = projects;
+    });
+  }
+
+  @override
+  void showAllLatestProjects(List<FundingProject> projects) {
+    setState(() {
+      latestProjects = projects;
+    });
+  }
+
+  @override
   void showError(String message) {
     setState(() {
       _errorMessage = message;
@@ -1300,13 +1312,6 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
   }
 
   @override
-  void showParticipatedProjects(List<FundingProject> projects) {
-    setState(() {
-      participatedProjects = projects;
-    });
-  }
-
-  @override
   void showUserDonation(Map<String, dynamic> donationData) {
     // TODO: implement showUserDonation
   }
@@ -1314,13 +1319,6 @@ class _MainMenuState extends State<MainMenu> implements ProjectView {
   @override
   void projectById(FundingProject projects) {
     // TODO: implement projectById
-  }
-
-  @override
-  void showAllLatestProjects(List<FundingProject> projects) {
-    setState(() {
-      latestProjects = projects;
-    });
   }
 
   @override

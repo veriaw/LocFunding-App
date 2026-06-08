@@ -22,7 +22,7 @@ To bridge this gap, I developed a platform that allows users to discover and sup
 ## Tech Stack
 
 * Frontend: Flutter (Dart)
-* Backend: RESTful API
+* Backend: RESTful API using ExpressJS
 * Local Storage: Hive, Shared Preferences
 * Security: RSA Encryption
 * IDE: Visual Studio Code

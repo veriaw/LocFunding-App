@@ -4,7 +4,7 @@ A mobile crowdfunding application built to connect local communities with potent
 
 To bridge this gap, I developed a platform that allows users to discover and support nearby social projects based on their geographic location. By combining crowdfunding with location awareness, the application encourages stronger engagement between donors and local communities.
 
-![LocFunding](.documentation/uiux-crowdfunding.png)
+![LocFunding](./documentation/uiux-crowdfunding.png)
 
 ## Features
 
